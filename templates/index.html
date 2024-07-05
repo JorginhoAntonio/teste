@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>
+   Raffle
+  </title>
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet"/>
+  <style>
+    body {
+        background-color: #f0f0f0; /* Cor de fundo pastel */
+        color: #333; /* Cor de texto padrão */
+        padding: 20px; /* Espaçamento interno geral */
+        font-family: 'Arial', sans-serif;
+    }
+
+    .form-container {
+        max-width: 600px;
+        margin: 0 auto; /* Centraliza o formulário horizontalmente */
+        background-color: #fff; /* Fundo branco para contraste */
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.1); /* Sombra mais suave */
+        animation: fadeIn 1s ease-in-out;
+    }
+
+    .form-container h1 {
+        text-align: center; /* Centraliza o título do formulário */
+        font-size: 2em;
+        margin-bottom: 20px;
+        color: #007bff;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-container form {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .form-container input, .form-container button {
+        margin-bottom: 15px;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        font-size: 1em;
+        transition: all 0.3s ease-in-out;
+    }
+
+    .form-container input:focus, .form-container button:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+    }
+
+    .form-container button {
+        background-color: #007bff; /* Cor chamativa para o botão */
+        color: #fff; /* Texto em contraste */
+        border: none;
+        cursor: pointer;
+        padding: 10px 20px;
+        border-radius: 5px;
+        transition: background-color 0.3s ease-in-out; /* Transição suave da cor de fundo */
+    }
+
+    .form-container button:hover {
+        background-color: #0056b3; /* Cor mais escura ao passar o mouse */
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
+    }
+
+    #result {
+        margin-top: 20px;
+        font-weight: bold;
+        animation: highlight 1s infinite;
+    }
+
+    input:invalid {
+        border-color: red;
+        box-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
+    }
+
+    input:valid {
+        border-color: #ccc;
+    }
+
+    #qr-code {
+        display: none;
+        max-width: 100%;
+        margin-top: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        animation: fadeIn 1s ease-in-out;
+    }
+
+    /* Estilo para esconder os elementos */
+    .hidden {
+        display: none;
+    }
+
+    /* Animações */
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+
+    @keyframes highlight {
+        0%, 100% {
+            background-color: #ffeb3b;
+        }
+        50% {
+            background-color: transparent;
+        }
+    }
+</style>
+ </head>
+ <body>
+  <div class="container">
+   <div class="form-container">
+    <h1>
+        ᴄᴏᴍᴘʀᴇ ꜱᴇᴜ ᴛɪᴄᴋᴇᴛ
+    </h1>
+    <form id="raffle-form">
+     <label id="name-text">
+        𝗡𝗼𝗺𝗲:
+     </label>
+     <input id="name" placeholder="Seu Nome" required="" type="text"/>
+     <label id="email-text">
+        𝗘-𝗺𝗮𝗶𝗹:
+     </label>
+     <input id="email" placeholder="Seu E-mail" required="" type="email"/>
+     <label id="quantity-text">
+        𝗤𝘂𝗮𝗻𝘁𝗶𝗱𝗮𝗱𝗲 𝗱𝗲 𝘁𝗶𝗰𝗸𝗲𝘁𝘀:
+     </label>
+     <input disabled="" id="quantity" max="100" min="0" placeholder="1" required="" type="number"/>
+     <button id="buy-button" type="submit">
+      Comprar
+     </button>
+     <p class="hidden" id="description-text">
+      Por favor, ao finalizar a compra entre em contato imediatamente para a confirmação do pedido.
+     </p>
+     <string class="hidden" id="ticket-description-text" type="text">
+      Número do ticket sorteado:
+     </string>
+     <p class="hidden" id="loading-text">
+      Esperando finalização da compra...
+     </p>
+    </form>
+    <img id="qr-code"/>
+   </div>
+  </div>
+  <script>
+        const quantityInput = document.getElementById('quantity');
+        const form = document.getElementById('raffle-form');
+        const emailInput = document.getElementById('email');
+
+        // Validar email ao enviar o formulário
+        form.addEventListener('submit', async function(event) {
+            event.preventDefault();
+            
+            // Verificar se o email é válido
+            if (!emailInput.validity.valid) {
+                emailInput.classList.add('invalid'); // Adicionar classe CSS para indicar erro
+                return; // Impedir envio do formulário se o email for inválido
+            }
+
+            // Se o email for válido, continuar com a compra
+            const name = document.getElementById('name').value;
+            const email = emailInput.value;
+            const quantity = 1;
+            
+            // Esconder elementos ao clicar em Comprar
+            document.getElementById('buy-button').classList.add('hidden');
+            document.getElementById('name').classList.add('hidden');
+            document.getElementById('email').classList.add('hidden');
+            document.getElementById('loading-text').classList.remove('hidden');
+            document.getElementById('description-text').classList.remove('hidden');
+            document.getElementById('ticket-description-text').classList.remove('hidden');
+            
+            // Renomear textos
+            let nametext = document.getElementById('name-text');
+            let emailtext = document.getElementById('email-text');
+            
+            nametext.textContent = "𝗡𝗼𝗺𝗲: " + document.getElementById('name').value;
+            emailtext.textContent = "𝗘-𝗺𝗮𝗶𝗹: " + document.getElementById('email').value;
+
+            const response = await fetch('/raffle/buy', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ name, email, quantity })
+            });
+            if (response.ok) {
+                const data = await response.json();
+                const ticketText = document.getElementById('ticket-description-text');
+                ticketText.textContent = "Número do ticket sorteado: " + data.ticket;
+                quantityInput.value = data.ticketCount;
+
+                const img = document.getElementById('qr-code');
+                const qrCodeImage = 'data:image/png;base64,' + btoa(data.qr_code);
+                img.src = qrCodeImage;
+                img.style.display = 'block';
+            } else {
+                alert('Erro ao comprar rifa.');
+            }
+        });
+
+        // Limpar estilo de campo inválido ao corrigir
+        emailInput.addEventListener('input', function() {
+            if (emailInput.validity.valid) {
+                emailInput.classList.remove('invalid'); // Remover classe de erro se o email for válido
+            }
+        });
+
+        // Adicionar listener para remover classe de erro ao focar no campo
+        emailInput.addEventListener('focus', function() {
+            emailInput.classList.remove('invalid'); // Remover classe de erro ao focar no campo
+        });
+  </script>
+ </body>
+</html>
